@@ -2646,10 +2646,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87cc1306b0f84c14a8bb3020117f1b96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AdressInput: {fileID: 0}
-  StartBtn: {fileID: 0}
-  HostBtn: {fileID: 0}
-  JoinBtn: {fileID: 0}
 --- !u!1 &1028211562
 GameObject:
   m_ObjectHideFlags: 0
@@ -3656,7 +3652,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RunInBackground: 1
-  LogLevel: 1
+  LogLevel: 0
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 1305328699}
@@ -5540,6 +5536,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3873aed53e3f5fe4c8fbf96d958ae016, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Status: {fileID: 0}
   StartGameBtn: {fileID: 2139587528}
   DisconnectBtn: {fileID: 2064535521}
 --- !u!1 &1947035816

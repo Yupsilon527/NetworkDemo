@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
+using UnityEngine.Android;
 
 public class InterfaceController : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class InterfaceController : MonoBehaviour
     public GameObject GameUI;
     public bool HasConnected()
     {
-        return NetworkManager.Singleton.IsConnectedClient || NetworkManager.Singleton.IsListening;
+        return NetworkManager.Singleton.IsListening;
     }
     public bool IsInGame()
     {
@@ -26,13 +27,15 @@ public class InterfaceController : MonoBehaviour
         if (HasConnected())
         {
             LobbyUI.SetActive(!IsInGame());
-            GameUI.SetActive(IsInGame());
+            if (GameUI != null)
+                GameUI.SetActive(IsInGame());
             ServerUI.SetActive(false);
         }
         else
         {
             ServerUI.SetActive(true);
             LobbyUI.SetActive(false);
+            if (GameUI!=null)
             GameUI.SetActive(false);
         }
     }

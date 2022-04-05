@@ -4,11 +4,6 @@ using UnityEngine.UI;
 
 public class ConnectInterfaceController : MonoBehaviour
 {
-    public GameObject AdressInput;
-    public GameObject StartBtn;
-    public GameObject HostBtn;
-    public GameObject JoinBtn;
-
 
     public void StartServer()
     {

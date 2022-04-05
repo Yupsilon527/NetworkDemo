@@ -32,8 +32,9 @@ public class GameController : MonoBehaviour
         if (!NetworkManager.Singleton.IsServer && !NetworkManager.Singleton.IsHost)
             return;
         NetworkManager.Singleton.OnClientConnectedCallback += (ulong clientID) =>
-    {
-        if (VariableController.main != null)
+        {
+            Debug.Log("ClientID" + clientID + " has connected!");
+            if (VariableController.main != null)
         {
             VariableController.main.ChangeColorForPlayer(clientID, Color.red);
         }
