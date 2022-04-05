@@ -46,4 +46,5 @@ public class MenuPanelController : MonoBehaviourPunCallbacks
     {
         SetActivePanel(MenuItem.inside);
     }
+
 }

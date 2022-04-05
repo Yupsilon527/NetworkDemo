@@ -1749,6 +1749,7 @@ GameObject:
   - component: {fileID: 622488410}
   - component: {fileID: 622488409}
   - component: {fileID: 622488413}
+  - component: {fileID: 622488414}
   m_Layer: 5
   m_Name: Main Menu
   m_TagString: Untagged
@@ -1860,6 +1861,18 @@ MonoBehaviour:
   hostMenu: {fileID: 1814019432}
   joinMenu: {fileID: 372974600}
   insideMenu: {fileID: 1139959708}
+--- !u!114 &622488414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 622488408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ceb3f50bcb96014f8ca7b99963dc458, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &739347322
 GameObject:
   m_ObjectHideFlags: 0
@@ -2773,6 +2786,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 1139959710}
+        m_TargetAssemblyTypeName: LobbyController, Assembly-CSharp
+        m_MethodName: OnLeaveGameButtonClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 622488413}
         m_TargetAssemblyTypeName: MenuPanelController, Assembly-CSharp
         m_MethodName: SetActivePanel
@@ -3358,6 +3383,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38940327b5c3899418087cb83790081a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  LobbyName: {fileID: 1893900506}
 --- !u!1 &1216343165
 GameObject:
   m_ObjectHideFlags: 0
@@ -4465,9 +4491,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Back
-
-'
+  m_text: Disconnect
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

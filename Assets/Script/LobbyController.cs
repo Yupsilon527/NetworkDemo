@@ -12,4 +12,16 @@ public class LobbyController : MonoBehaviour
         if (PhotonNetwork.CurrentRoom!=null)
         LobbyName.text = PhotonNetwork.CurrentRoom.Name;
     }
+    public void OnGameStarted()
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
+
+        //PhotonNetwork.LoadLevel("DemoAsteroids-GameScene");
+    }
+
+    public void OnLeaveGameButtonClicked()
+    {
+        PhotonNetwork.LeaveRoom();
+    }
 }
