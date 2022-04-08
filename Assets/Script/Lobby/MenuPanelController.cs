@@ -19,6 +19,7 @@ public class MenuPanelController : MonoBehaviourPunCallbacks
     public GameObject insideMenu;
     private void Start()
     {
+        PhotonNetwork.AutomaticallySyncScene = true;
         SetActivePanel(MenuItem.login);
     }
     public void SetActivePanel(int activePanel)
@@ -45,6 +46,15 @@ public class MenuPanelController : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         SetActivePanel(MenuItem.inside);
+        InitializePlayer();
     }
 
+    void InitializePlayer()
+    {
+        ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
+            {
+                {"FinishedLoading", false},
+            };
+        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+    }
 }

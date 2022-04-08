@@ -5,10 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/AndroidLobbyScene.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
-    path: Assets/Scenes/WinLobbyScene.unity
-    guid: 75edc8920f98a4a46b00985345e5d0a5
+    path: Assets/Scenes/Werewolf Lobby Scene.unity
+    guid: 47d760f1d7ae7674483225145fadae0c
+  - enabled: 1
+    path: Assets/Scenes/Werewolf Game Scene.unity
+    guid: fe84a497c3cb0984983354e8f948223e
   m_configObjects: {}

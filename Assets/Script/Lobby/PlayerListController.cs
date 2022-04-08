@@ -35,7 +35,7 @@ public class PlayerListController : MonoBehaviourPunCallbacks
     }
     void RegisterNewPlayer(Player player)
     {
-        if (transform.GetChild(players) != null)
+        if (transform.childCount > players)
         {
             Transform childTransform = transform.GetChild(players);
             childTransform.gameObject.SetActive(true);
@@ -46,10 +46,19 @@ public class PlayerListController : MonoBehaviourPunCallbacks
             GameObject nChild = GameObject.Instantiate(transform.GetChild(0).gameObject);
             nChild.SetActive(true);
             nChild.GetComponent<PlayerListLabel>().AssignPlayer(player);
+
+
             nChild.transform.SetParent(transform);
 
             RectTransform rectT = nChild.GetComponent<RectTransform>();
-            rectT.anchoredPosition = Vector2.down * rectT.rect.height * (players + .5f);
+            RectTransform rectP = transform.GetChild(0).GetComponent<RectTransform>();
+            
+            rectT.anchoredPosition = rectP.anchoredPosition + Vector2.down * players * rectT.sizeDelta.y;
+            rectT.anchorMin = rectP.anchorMin;
+            rectT.anchorMax = rectP.anchorMax;
+            rectT.offsetMin = rectP.offsetMin;
+            rectT.offsetMax = rectP.offsetMax;
+            rectT.sizeDelta = rectP.sizeDelta;
         }
         players++;
     }

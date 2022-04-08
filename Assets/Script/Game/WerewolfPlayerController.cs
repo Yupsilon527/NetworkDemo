@@ -1,11 +1,12 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerCustomizationController : MonoBehaviourPunCallbacks
+public class WerewolfPlayerController : MonoBehaviour
 {
-    public override void OnJoinedRoom()
+    public void OnEnable()
     {
         InitializePlayer();
     }
@@ -14,9 +15,10 @@ public class PlayerCustomizationController : MonoBehaviourPunCallbacks
     {
         ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
             {
-                {"FinishedLoading", false},
+                {"FinishedLoading", true},
                 {"CustomPortrait", "Player"},
-                {"PlayerClass", 0},
+                {"PlayerClass", "Spectator"},
+                {"VoteTarget", -1},
                 {"WasKilled", false},
             };
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
