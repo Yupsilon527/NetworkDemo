@@ -32,10 +32,6 @@ public class LobbyController : MonoBehaviourPunCallbacks
         PhotonNetwork.LoadLevel("Werewolf Game Scene");
     }
 
-    public void OnLeaveGameButtonClicked()
-    {
-        PhotonNetwork.LeaveRoom();
-    }
     public override void OnMasterClientSwitched(Player newMasterClient)
     {
         UpdateHost();

@@ -17,11 +17,11 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
 
     public GameObject VotingPanel;
     public GameObject AbilityPanel;
-    public GameObject DeadPanel;
+    public GameObject DeathOverlay;
+    public PlayerDeathPanel DeadPanel;
 
-    [Header("Victory Panels")]
-    public GameObject AntagVictoryPanel;
-    public GameObject VillageVictoryPanel;
+    [Header("Game Over Panels")]
+    public GameOverPanel GameOverPanel;
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
     {
@@ -44,28 +44,52 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
         {
             if (changedProps.TryGetValue("WasKilled", out var playerDead))
             {
-                    DeadPanel.SetActive((bool)playerDead);
-                
+                DeathOverlay.SetActive((bool)playerDead);
+                if ((bool)playerDead)
+                    WerewolfGameController.main.pview.RPC("OnPlayerDeath", RpcTarget.AllViaServer, targetPlayer);
             }
         }
-        }
+    }
+    [PunRPC]
+    void OnPlayerDeath(Player deadplayer, PhotonMessageInfo info)
+    {
+        DeadPanel.AnnouncePlayerDeath(deadplayer);
+        StartCoroutine(ShowPlayerDeath());
+    }
+    IEnumerator ShowPlayerDeath()
+    {
+        DeadPanel.gameObject.SetActive(true);
+        yield return new WaitForSeconds(3);
+        DeadPanel.gameObject.SetActive(false);
+    }
     IEnumerator ShowPlayerRole()
     {
         PlayerClassPanel.SetActive(true);
         yield return new WaitForSeconds(3);
         PlayerClassPanel.SetActive(false);
     }
+    WerewolfGameController.GamePhase currentUI = WerewolfGameController.GamePhase.Loading;
     private void Update()
     {
-        if (WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Day)
+        if (currentUI!= WerewolfGameController.main.CurrentPhase)
         {
-            DayPanel.SetActive(true);
-            NightPanel.SetActive(false);
+            currentUI = WerewolfGameController.main.CurrentPhase;
+
+            if (DeathOverlay.activeSelf) return;
+            DayPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Day);
+            NightPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Night);
+            VotingPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Voting);
+
+            if (currentUI == WerewolfGameController.GamePhase.Night)
+                StartCoroutine(DisplayNightAbilities());
+            AbilityPanel.SetActive(false);
         }
-        else if (WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Night)
-        {
-            DayPanel.SetActive(false);
-            NightPanel.SetActive(true);
-        }
+    }
+    IEnumerator DisplayNightAbilities()
+    {
+            if (DeathOverlay.activeSelf) return;
+        yield return new WaitForSeconds(3);
+        if (WerewolfGameController.main.IsPlayerAntagonist(PhotonNetwork.LocalPlayer))
+            AbilityPanel.SetActive(true);
     }
 }

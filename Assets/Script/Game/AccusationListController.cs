@@ -1,21 +1,18 @@
+using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
-using Photon.Pun;
-using Photon.Realtime;
 
-public class PlayerListController : MonoBehaviourPunCallbacks
+public class AccusationListController : MonoBehaviour
 {
-    public override void OnEnable()
+    public void OnEnable()
     {
-        base.OnEnable();
         LoadPlayerList();
     }
-    public override void OnJoinedRoom()
+    private void OnDisable()
     {
-        LoadPlayerList();
+        ClearPlayerList();
     }
     void ClearPlayerList()
     {
@@ -27,30 +24,33 @@ public class PlayerListController : MonoBehaviourPunCallbacks
     }
 
     int players = 0;
-     void LoadPlayerList()
+    void LoadPlayerList()
     {
         ClearPlayerList();
-        foreach (Player p in PhotonNetwork.PlayerList)
-            RegisterNewPlayer(p);
+        foreach (Player p in WerewolfGameController.main.GetAllLivingPlayers())
+        {
+            if (!p.IsLocal)
+                RegisterNewPlayer(p);
+        }
     }
     void RegisterNewPlayer(Player player)
     {
-        if (players < transform.childCount)
+        if (players<transform.childCount)
         {
             Transform childTransform = transform.GetChild(players);
             childTransform.gameObject.SetActive(true);
-            childTransform.GetComponent<PlayerListLabel>().AssignPlayer(player);
+            childTransform.GetComponent<AccusePlayerButton>().AssignPlayer(player);
         }
         else
         {
             GameObject nChild = GameObject.Instantiate(transform.GetChild(0).gameObject);
             nChild.SetActive(true);
-            nChild.GetComponent<PlayerListLabel>().AssignPlayer(player);
+            nChild.GetComponent<AccusePlayerButton>().AssignPlayer(player);
             nChild.transform.SetParent(transform);
 
             RectTransform rectT = nChild.GetComponent<RectTransform>();
             RectTransform rectP = transform.GetChild(0).GetComponent<RectTransform>();
-            
+
             rectT.anchoredPosition = rectP.anchoredPosition + Vector2.down * players * rectT.sizeDelta.y;
             rectT.anchorMin = rectP.anchorMin;
             rectT.anchorMax = rectP.anchorMax;
@@ -59,23 +59,5 @@ public class PlayerListController : MonoBehaviourPunCallbacks
             rectT.sizeDelta = rectP.sizeDelta;
         }
         players++;
-    }
-
-    public override void OnPlayerEnteredRoom(Player newPlayer)
-    {
-        RegisterNewPlayer(newPlayer);
-    }
-
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        foreach (PlayerListLabel label in GetComponentsInChildren<PlayerListLabel>())
-        {
-            if (label.myPlayer == otherPlayer)
-            {
-                label.gameObject.SetActive(false);
-                label.transform.SetAsLastSibling();
-                players--;
-            }
-        }
     }
 }

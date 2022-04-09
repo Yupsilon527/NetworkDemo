@@ -1,10 +1,10 @@
-using Photon.Pun;
-using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
+using Photon.Realtime;
 
-public class AccusePlayerMenu : MonoBehaviour
+public class AbilityTargetListController : MonoBehaviour
 {
     public void OnEnable()
     {
@@ -29,13 +29,17 @@ public class AccusePlayerMenu : MonoBehaviour
         ClearPlayerList();
         foreach (Player p in WerewolfGameController.main.GetAllLivingPlayers())
         {
-            if (!p.IsLocal)
+            if (IsValidTargetForAbility(p))
                 RegisterNewPlayer(p);
         }
     }
+    bool IsValidTargetForAbility(Player target)
+    {
+        return !target.IsLocal && WerewolfGameController.main.IsPlayerAlive(target) && !WerewolfGameController.main.IsPlayerAntagonist(target);
+    }
     void RegisterNewPlayer(Player player)
     {
-        if (transform.childCount <= players)
+        if (players < transform.childCount)
         {
             Transform childTransform = transform.GetChild(players);
             childTransform.gameObject.SetActive(true);
@@ -45,7 +49,7 @@ public class AccusePlayerMenu : MonoBehaviour
         {
             GameObject nChild = GameObject.Instantiate(transform.GetChild(0).gameObject);
             nChild.SetActive(true);
-            nChild.GetComponent<AccusePlayerButton>().AssignPlayer(player);
+            nChild.GetComponent<AbilityTargetButton>().AssignPlayer(player);
             nChild.transform.SetParent(transform);
 
             RectTransform rectT = nChild.GetComponent<RectTransform>();

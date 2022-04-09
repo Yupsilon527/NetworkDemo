@@ -16,6 +16,7 @@ public class JoinRoomController : MonoBehaviour
     void Start()
     {
         JoinRoomButton.onClick.AddListener(JoinRoomByName);
+        /*Use RoomOptions.PlayerTtl != 0 and call PhotonNetwork.ReconnectAndRejoin() or PhotonNetwork.RejoinRoom(roomName);*/
     }
 
     public void JoinRoomByName()
