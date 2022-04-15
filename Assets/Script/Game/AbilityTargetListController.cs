@@ -56,11 +56,6 @@ public class AbilityTargetListController : MonoBehaviour
             RectTransform rectP = transform.GetChild(0).GetComponent<RectTransform>();
 
             rectT.anchoredPosition = rectP.anchoredPosition + Vector2.down * players * rectT.sizeDelta.y;
-            rectT.anchorMin = rectP.anchorMin;
-            rectT.anchorMax = rectP.anchorMax;
-            rectT.offsetMin = rectP.offsetMin;
-            rectT.offsetMax = rectP.offsetMax;
-            rectT.sizeDelta = rectP.sizeDelta;
         }
         players++;
     }

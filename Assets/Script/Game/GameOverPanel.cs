@@ -10,22 +10,27 @@ public class GameOverPanel : MonoBehaviour
     public GameObject VillageGameOver;
     public Button RestartGameButton;
 
+    void OnEnable()
+    {
+        if (WerewolfGameController.main.GetLivingAntags().Length>0)
+        {
+            ShowAntagVictory();
+        }
+        else
+        {
+            ShowVillageVictory();
+        }
+    }
     public void ShowAntagVictory()
     {
         AntagGameOver.SetActive(true);
         VillageGameOver.SetActive(false);
-        gameObject.SetActive(true);
+        RestartGameButton.gameObject.SetActive(RestartGameButton != null && PhotonNetwork.IsMasterClient);
     }
     public void ShowVillageVictory()
     {
         AntagGameOver.SetActive(false);
         VillageGameOver.SetActive(true);
-        gameObject.SetActive(true);
-    }
-
-    private void OnEnable()
-    {
         RestartGameButton.gameObject.SetActive(RestartGameButton != null && PhotonNetwork.IsMasterClient);
-
     }
 }

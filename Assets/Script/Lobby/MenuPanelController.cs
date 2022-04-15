@@ -20,6 +20,7 @@ public class MenuPanelController : MonoBehaviourPunCallbacks
     private void Start()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
+        //PhotonNetwork.UseRpcMonoBehaviourCache = false;
         SetActivePanel(MenuItem.login);
     }
     public void SetActivePanel(int activePanel)

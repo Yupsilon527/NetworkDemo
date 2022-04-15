@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class AccusePlayerButton : MonoBehaviour
+public class AccusePlayerButton : MonoBehaviourPunCallbacks
 {
     public Player myPlayer;
     public TextMeshProUGUI PlayerName;

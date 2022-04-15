@@ -8,8 +8,7 @@ using Photon.Realtime;
 public class GameInterfaceController : MonoBehaviourPunCallbacks
 {
     [Header("Player Class Panel")]
-    public GameObject PlayerClassPanel;
-    public TextMeshProUGUI PlayerClassLabel;
+    public PlayerClassPanel PlayerClassPanel;
 
     [Header("Day/Night Panels")]
     public GameObject DayPanel;
@@ -25,6 +24,20 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
     {
+        if (changedProps.ContainsKey("WasKilled") && changedProps.TryGetValue("WasKilled", out var playerDead))
+            {
+
+                if (targetPlayer.UserId == PhotonNetwork.LocalPlayer.UserId)
+                    DeathOverlay.SetActive((bool)playerDead);
+                if ((bool)playerDead)
+            {
+                Debug.Log(targetPlayer.NickName + " was killed UI!");
+                DeadPanel.AnnouncePlayerDeath(targetPlayer);
+                StartCoroutine(ShowPlayerDeath());
+            }
+            }
+        
+
         if (targetPlayer.UserId != PhotonNetwork.LocalPlayer.UserId)
             return;
 
@@ -35,38 +48,17 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
                 if (changedProps.TryGetValue("PlayerClass", out var className))
                 {
                     Debug.Log("Class of my player set to " + className);
-                    PlayerClassLabel.text = (string)className;
+                    PlayerClassPanel.gameObject.SetActive(true);
+                    PlayerClassPanel.AnnouncePlayerClass((string)className);
                 }
-                StartCoroutine(ShowPlayerRole());
             }
         }
-        if (changedProps.ContainsKey("WasKilled"))
-        {
-            if (changedProps.TryGetValue("WasKilled", out var playerDead))
-            {
-                DeathOverlay.SetActive((bool)playerDead);
-                if ((bool)playerDead)
-                    WerewolfGameController.main.pview.RPC("OnPlayerDeath", RpcTarget.AllViaServer, targetPlayer);
-            }
-        }
-    }
-    [PunRPC]
-    void OnPlayerDeath(Player deadplayer, PhotonMessageInfo info)
-    {
-        DeadPanel.AnnouncePlayerDeath(deadplayer);
-        StartCoroutine(ShowPlayerDeath());
     }
     IEnumerator ShowPlayerDeath()
     {
         DeadPanel.gameObject.SetActive(true);
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(9999999999);
         DeadPanel.gameObject.SetActive(false);
-    }
-    IEnumerator ShowPlayerRole()
-    {
-        PlayerClassPanel.SetActive(true);
-        yield return new WaitForSeconds(3);
-        PlayerClassPanel.SetActive(false);
     }
     WerewolfGameController.GamePhase currentUI = WerewolfGameController.GamePhase.Loading;
     private void Update()
@@ -76,9 +68,11 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
             currentUI = WerewolfGameController.main.CurrentPhase;
 
             if (DeathOverlay.activeSelf) return;
+            Debug.Log("UI changephase to "+ currentUI);
             DayPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Day);
             NightPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Night);
             VotingPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Voting);
+            GameOverPanel.gameObject.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.PostGame);
 
             if (currentUI == WerewolfGameController.GamePhase.Night)
                 StartCoroutine(DisplayNightAbilities());
@@ -87,9 +81,8 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
     }
     IEnumerator DisplayNightAbilities()
     {
-            if (DeathOverlay.activeSelf) return;
-        yield return new WaitForSeconds(3);
-        if (WerewolfGameController.main.IsPlayerAntagonist(PhotonNetwork.LocalPlayer))
-            AbilityPanel.SetActive(true);
+            yield return new WaitForSeconds(3);
+            if (!DeathOverlay.activeSelf && WerewolfGameController.main.IsPlayerAntagonist(PhotonNetwork.LocalPlayer))
+                AbilityPanel.SetActive(true);
     }
 }

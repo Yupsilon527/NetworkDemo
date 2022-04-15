@@ -13,20 +13,20 @@ public class PlayerDeathPanel : MonoBehaviour
         mauled = 2
     }
 
-    public TextMeshProUGUI PlayerName;
-    public TextMeshProUGUI PlayerClass;
+    public TextMeshProUGUI NameLabel;
+    public TextMeshProUGUI CauseLabel;
     public void AnnouncePlayerDeath(Player p)
     {
         if (p.IsLocal)
         {
-            PlayerName.text = "You have been killed!";
-            PlayerClass.text = "Cause of death";
+            NameLabel.text = "You have been killed!";
+            CauseLabel.text = "Cause of death";
         }
         else
         {
-            PlayerName.text = p.NickName + " has been!";
+            NameLabel.text = p.NickName + " has been!";
             if (p.CustomProperties.TryGetValue("PlayerClass", out var playerclass))                
-                PlayerClass.text = "Their role was "+ (string)playerclass;
+                CauseLabel.text = "Their role was "+ (string)playerclass;
         }
     }
 }
