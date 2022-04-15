@@ -8,6 +8,7 @@ using Photon.Realtime;
 public class GameInterfaceController : MonoBehaviourPunCallbacks
 {
     [Header("Player Class Panel")]
+    bool HasPlayerDied = false;
     public PlayerClassPanel PlayerClassPanel;
 
     [Header("Day/Night Panels")]
@@ -27,13 +28,15 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
         if (changedProps.ContainsKey("WasKilled") && changedProps.TryGetValue("WasKilled", out var playerDead))
             {
 
-                if (targetPlayer.UserId == PhotonNetwork.LocalPlayer.UserId)
-                    DeathOverlay.SetActive((bool)playerDead);
+            if (targetPlayer.UserId == PhotonNetwork.LocalPlayer.UserId)
+                HasPlayerDied = (bool)playerDead;
                 if ((bool)playerDead)
             {
                 Debug.Log(targetPlayer.NickName + " was killed UI!");
                 DeadPanel.AnnouncePlayerDeath(targetPlayer);
-                StartCoroutine(ShowPlayerDeath());
+                if (TooltipCoroutine != null)
+                    StopCoroutine(TooltipCoroutine);
+                TooltipCoroutine = StartCoroutine(ShowPlayerDeath());
             }
             }
         
@@ -54,10 +57,11 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
             }
         }
     }
+    Coroutine TooltipCoroutine;
     IEnumerator ShowPlayerDeath()
     {
         DeadPanel.gameObject.SetActive(true);
-        yield return new WaitForSeconds(9999999999);
+        yield return new WaitForSeconds(3);
         DeadPanel.gameObject.SetActive(false);
     }
     WerewolfGameController.GamePhase currentUI = WerewolfGameController.GamePhase.Loading;
@@ -67,15 +71,21 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
         {
             currentUI = WerewolfGameController.main.CurrentPhase;
 
-            if (DeathOverlay.activeSelf) return;
-            Debug.Log("UI changephase to "+ currentUI);
-            DayPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Day);
-            NightPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Night);
-            VotingPanel.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Voting);
             GameOverPanel.gameObject.SetActive(WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.PostGame);
 
-            if (currentUI == WerewolfGameController.GamePhase.Night)
-                StartCoroutine(DisplayNightAbilities());
+            DeathOverlay.SetActive(HasPlayerDied);
+
+            Debug.Log("UI changephase to "+ currentUI);
+            DayPanel.SetActive(!HasPlayerDied && WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Day);
+            NightPanel.SetActive(!HasPlayerDied && WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Night);
+            VotingPanel.SetActive(!HasPlayerDied && WerewolfGameController.main.CurrentPhase == WerewolfGameController.GamePhase.Voting);
+
+            if (!HasPlayerDied && currentUI == WerewolfGameController.GamePhase.Night)
+            {
+                if (TooltipCoroutine != null)
+                    StopCoroutine(TooltipCoroutine);
+                TooltipCoroutine = StartCoroutine(DisplayNightAbilities());
+            }
             AbilityPanel.SetActive(false);
         }
     }

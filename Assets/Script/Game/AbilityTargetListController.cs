@@ -29,7 +29,7 @@ public class AbilityTargetListController : MonoBehaviour
         ClearPlayerList();
         foreach (Player p in WerewolfGameController.main.GetAllLivingPlayers())
         {
-            if (IsValidTargetForAbility(p))
+            if (p!=null && IsValidTargetForAbility(p))
                 RegisterNewPlayer(p);
         }
     }
@@ -43,7 +43,8 @@ public class AbilityTargetListController : MonoBehaviour
         {
             Transform childTransform = transform.GetChild(players);
             childTransform.gameObject.SetActive(true);
-            childTransform.GetComponent<AccusePlayerButton>().AssignPlayer(player);
+            if (childTransform.TryGetComponent(out AbilityTargetButton abt))
+                abt.AssignPlayer(player);
         }
         else
         {

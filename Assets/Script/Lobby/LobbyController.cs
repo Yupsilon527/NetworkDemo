@@ -27,8 +27,6 @@ public class LobbyController : MonoBehaviourPunCallbacks
         {
             return;
         }
-        PhotonNetwork.CurrentRoom.IsOpen = false;
-        PhotonNetwork.CurrentRoom.IsVisible = false;
         PhotonNetwork.LoadLevel("Werewolf Game Scene");
     }
 

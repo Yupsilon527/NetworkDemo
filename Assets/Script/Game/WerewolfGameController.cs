@@ -67,7 +67,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         Debug.Log("[WerewolfGame] Change phase to " + nPhase);
         if (PhotonNetwork.IsMasterClient)
         {
-            pview.RPC("OnGamephaseChange", RpcTarget.AllViaServer, nPhase);
+            pview.RPC("OnGamephaseChange", RpcTarget.AllBufferedViaServer, nPhase);
             PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "GamePhase", (int)CurrentPhase } });
         }
     }
@@ -84,23 +84,18 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
                 RunPhaseCountdown(3);
                 break;
             case GamePhase.Day:
-                if (GetLivingAntags().Length == 0)
-                {
-                    Debug.Log("Village won!");
-                    ChangePhase(GamePhase.PostGame);
-                }
-                else if (GetLivingVillagers().Length == 0)
+                if (GetLivingAntags().Length == 0 || GetLivingVillagers().Length == 0)
                 {
                     Debug.Log("Antags won!");
                     ChangePhase(GamePhase.PostGame);
                 }
                 else
                 {
-                    if (NextNightTime < 0)
-                    {
                         int playerCount = GetAllLivingPlayers().Length;
-                        BeginNewDay(playerCount > 2 ? 300 : 10);
-                    }
+                        if (playerCount > 2 && NextNightTime < 0)
+                            BeginNewDay(300);
+                        else
+                            ChangePhase(GamePhase.PostGame);
                     ResetPlayerVotes();
                 }
                 break;
@@ -114,6 +109,9 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
                 ChangePhase(GamePhase.Voting);
                 break;
             case GamePhase.Voting:
+                break;
+            case GamePhase.PostGame:
+                UnIn();
                 break;
         }
         CurrentPhase = nPhase;
@@ -180,6 +178,8 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             { "CountDown", 0 },
             { "NextNightTime", 0 }
         });
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
     }
 
     void StartTheGame()
@@ -187,6 +187,14 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         Debug.Log("[WerewolfGame] Start New Server Game");
         InitializePlayerRoles();
         ChangePhase(GamePhase.PreGame);
+    }
+
+    void UnIn()
+    {
+        if (!PhotonNetwork.IsMasterClient)
+            return;
+        PhotonNetwork.CurrentRoom.IsOpen = true;
+        PhotonNetwork.CurrentRoom.IsVisible = true;
     }
     public int GetPlayerCount()
     {
