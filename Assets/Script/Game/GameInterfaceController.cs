@@ -82,9 +82,7 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
 
             if (!HasPlayerDied && currentUI == WerewolfGameController.GamePhase.Night)
             {
-                if (TooltipCoroutine != null)
-                    StopCoroutine(TooltipCoroutine);
-                TooltipCoroutine = StartCoroutine(DisplayNightAbilities());
+                StartCoroutine(DisplayNightAbilities());
             }
             AbilityPanel.SetActive(false);
         }

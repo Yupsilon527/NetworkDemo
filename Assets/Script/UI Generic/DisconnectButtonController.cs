@@ -7,7 +7,7 @@ public class DisconnectButtonController : MonoBehaviour, IButtonScript
 {
     public void OnClicked()
     {
-        PhotonNetwork.ConnectUsingSettings() ;
+        PhotonNetwork.Disconnect() ;
     }
 
 

@@ -8,13 +8,14 @@ using UnityEngine;
 public class HostRoomController : MonoBehaviour
 {
     public TMP_InputField RoomName;
-    public TMP_InputField PlayerCount;
+    public PlayerCountController PlayerCount;
 
     public void CreateNewRoom()
     {
         string roomName = RoomName.text;
 
-        RoomOptions options = new RoomOptions { MaxPlayers = 8 };
+        
+        RoomOptions options = new RoomOptions { MaxPlayers = (byte)PlayerCount.GetValue() };
 
         PhotonNetwork.CreateRoom(roomName, options, null);
     }

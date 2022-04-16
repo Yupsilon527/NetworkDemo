@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //TODO
-//test game with 3 players
 //timers
 //defines and player settings
 //death cause
@@ -25,7 +24,8 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        HandleGameRestart();
+        InitializePlayer();
+        InitializeRoom();
     }
     private void Update()
     {
@@ -44,8 +44,8 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     [PunRPC]
     void HandleGameRestart()
     {
-        InitializePlayer();
         InitializeRoom();
+        CheckGameStarted();
     }
     #endregion
     #region GamePhase
@@ -59,8 +59,8 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         Night = 3,
         PostGame = 4,
     }
-    float NextGamePhaseTime = 0;
-    float NextNightTime = 0;
+    public float NextGamePhaseTime = 0;
+    public float NextNightTime = 0;
     public GamePhase CurrentPhase = GamePhase.Loading;
     void ChangePhase(GamePhase nPhase)
     {
@@ -75,7 +75,12 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     void OnGamephaseChange(GamePhase nPhase, PhotonMessageInfo info)
     {
         Debug.Log("[WerewolfGame] Server change phase to " + nPhase);
-        NextGamePhaseTime = -1;
+        RunPhaseCountdown( -1);
+        if (GetLivingAntags().Length == 0 || GetLivingVillagers().Length == 0)
+        {
+            Debug.Log("[WerewolfGame] Game Over! One side won!");
+            ChangePhase(GamePhase.PostGame);
+        }
         switch (nPhase)
         {
             case GamePhase.Loading:
@@ -84,19 +89,20 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
                 RunPhaseCountdown(3);
                 break;
             case GamePhase.Day:
-                if (GetLivingAntags().Length == 0 || GetLivingVillagers().Length == 0)
+                
+                        int playerCount = GetAllLivingPlayers().Length;
+                if (playerCount > 2)
                 {
-                    Debug.Log("Antags won!");
-                    ChangePhase(GamePhase.PostGame);
+                    if (NextNightTime <= 0)
+                    {
+                        BeginNewDay(300);
+                    }
+                    ResetPlayerVotes();
                 }
                 else
                 {
-                        int playerCount = GetAllLivingPlayers().Length;
-                        if (playerCount > 2 && NextNightTime < 0)
-                            BeginNewDay(300);
-                        else
-                            ChangePhase(GamePhase.PostGame);
-                    ResetPlayerVotes();
+                    Debug.Log("[WerewolfGame] Game Over; Not Enough Players");
+                    ChangePhase(GamePhase.PostGame);
                 }
                 break;
             case GamePhase.Night:
@@ -152,14 +158,14 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     void RunPhaseCountdown(float time)
     {
         Debug.Log("[WerewolfGame] Run countdown timer " + time);
-        NextGamePhaseTime = Time.time + time;
+        NextGamePhaseTime = time < 0 ? time : (Time.time + time);
         if (PhotonNetwork.IsMasterClient)
             PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "CountDown", NextGamePhaseTime } });
     }
     void BeginNewDay(float daytime)
     {
         Debug.Log("[WerewolfGame] Run countdown timer " + daytime);
-        NextNightTime = Time.time + daytime;
+        NextNightTime = daytime < 0 ? daytime : (Time.time + daytime);
         if (PhotonNetwork.IsMasterClient)
             PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "NextNightTime", NextNightTime } });
     }
@@ -185,6 +191,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     void StartTheGame()
     {
         Debug.Log("[WerewolfGame] Start New Server Game");
+        ResetPlayerProps();
         InitializePlayerRoles();
         ChangePhase(GamePhase.PreGame);
     }
@@ -231,7 +238,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     protected void CheckGameStarted()
     {
         Debug.Log("[WerewolfGame] Check Game Started");
-        if (CheckAllPlayerLoadedLevel())
+        if (PhotonNetwork.IsMasterClient && CheckAllPlayerLoadedLevel())
         {
             StartTheGame();
         }
@@ -300,7 +307,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         int totVotes = 0;
         foreach (KeyValuePair<string, int> votes in votesCount)
         {
-            if (votes.Value > totVotes)
+            if (votes.Key!="" && votes.Value > totVotes)
             {
                 votedPlayer = votes.Key;
                 totVotes = votes.Value;
@@ -539,12 +546,22 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
             {
                 {"FinishedLoading", true},
-                {"CustomPortrait", "Player"},
-                {"PlayerClass", "Spectator"},
-                {"VoteTarget", -1},
-                {"WasKilled", false},
             };
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+    }
+    void ResetPlayerProps()
+    {
+        if (!PhotonNetwork.IsMasterClient)
+            return;
+        ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
+            {
+                {"CustomPortrait", "Player"},
+                {"PlayerClass", "Spectator"},
+                {"VoteTarget", ""},
+                {"WasKilled", false},
+            };
+        foreach (Player p in PhotonNetwork.PlayerList)
+            p.SetCustomProperties(props);
     }
     public bool IsPlayerAlive(Player p)
     {
