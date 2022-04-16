@@ -23,7 +23,7 @@ public static class WerewolfGameDefines
     public static float PregameTime = 3;
     public static float PhaseTimeShort = 5;
     public static float DayTimeDuration = 300;
-    public static float NightTimeDuration = 6;
+    public static float NightTimeDuration = 60;
 
     public enum PlayerAliveState
     {

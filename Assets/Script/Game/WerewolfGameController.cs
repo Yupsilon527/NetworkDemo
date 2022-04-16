@@ -114,7 +114,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             case GamePhase.Voting:
                 break;
             case GamePhase.PostGame:
-                UnIn();
+                OnGameEnd();
                 break;
         }
         CurrentPhase = nPhase;
@@ -138,14 +138,15 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
                 ChangePhase(GamePhase.Voting);
                 break;
             case GamePhase.Voting:
-                if (NextGamePhaseTime > 0)
-                    ChangePhase(GamePhase.Day);
-                else
+                if (HandleEndOfVoting() || NextNightTime<Time.time)
                 {
-                    HandleEndOfVoting();
-                    ResetPlayerVotes();
                     ChangePhase(GamePhase.Night);
                 }
+                else
+                {
+                    ChangePhase(GamePhase.Day);
+                }
+                ResetPlayerVotes();
                 break;
             default:
                     ChangePhase(GamePhase.Day);
@@ -193,7 +194,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         ChangePhase(GamePhase.PreGame);
     }
 
-    void UnIn()
+    void OnGameEnd()
     {
         if (!PhotonNetwork.IsMasterClient)
             return;
@@ -323,26 +324,26 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         string votedPlayer = (string)value;
 
         bool EveryoneVoted = true;
-        Player[] importantPlayers = GetAllLivingPlayers();
+        Player[] VotingPlayers = GetAllLivingPlayers();
         int votes = 0;
-        foreach (Player p in importantPlayers)
+        foreach (Player p in VotingPlayers)
         {
             if (p.NickName == votedPlayer)
                 continue;
             if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerVote, out var playervote))
             {
                 string pVote = (string)playervote;
-                if (pVote == "")
-                {
-                    EveryoneVoted = false;
-                }
-                else if (pVote == WerewolfGameDefines.PlayerVoteYes)
+                 if (pVote == WerewolfGameDefines.PlayerVoteYes)
                 {
                     votes++;
                 }
+                else if (pVote != WerewolfGameDefines.PlayerVoteNo)
+                {
+                    EveryoneVoted = false;
+                }
             }
         }
-        VotedKill = votes >= Mathf.CeilToInt((importantPlayers.Length-1) / 2);
+        VotedKill = votes >= Mathf.CeilToInt((VotingPlayers.Length) / 2);
         return EveryoneVoted;
     }
     void HandlePlayerLynching()
@@ -351,44 +352,33 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.VotedPlayer, out object value))
             return;
 
-        string votedPlayer = (string)value;
         bool everyoneVoted = RecountPlayerLynchings(out bool votedKill);
         if (everyoneVoted)
         {
-            if (votedKill)
-            {
-                Debug.Log(votedPlayer + " was lynched");
-                KillPlayer(GetPlayerByName(votedPlayer), WerewolfGameDefines.PlayerAliveState.lynched);
-                    ResetPlayerVotes();
-                    ChangePhase(GamePhase.Night);
-                
-            }
-            else if (everyoneVoted)
-            {
-                Debug.Log(votedPlayer + " was pardoned");
-                    GoToNextPhase();
-            }
+            GoToNextPhase();
         }
     }
-    void HandleEndOfVoting()
+    bool HandleEndOfVoting()
     {
         Debug.Log("[WerewolfGame] Handle player lyncing...");
         if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.VotedPlayer, out object value))
-            return;
+            return false;
 
         string votedPlayer = (string)value;
         bool everyoneVoted = RecountPlayerLynchings(out bool votedKill);
-       
-            if (votedKill)
-            {
-                Debug.Log(votedPlayer + " was lynched");
-                KillPlayer(GetPlayerByName(votedPlayer), WerewolfGameDefines.PlayerAliveState.lynched);
-            }
-            else if (everyoneVoted)
-            {
-                Debug.Log(votedPlayer + " was pardoned");
-            
+
+        if (votedKill)
+        {
+            Debug.Log(votedPlayer + " was lynched");
+            KillPlayer(GetPlayerByName(votedPlayer), WerewolfGameDefines.PlayerAliveState.lynched);
+            return true;
         }
+        else if (everyoneVoted)
+        {
+            Debug.Log(votedPlayer + " was pardoned");
+
+        }
+        return false;
     }
     #endregion
     #region Antag Coordinated Attack
