@@ -54,7 +54,7 @@ public class MenuPanelController : MonoBehaviourPunCallbacks
     {
         ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
             {
-                {"FinishedLoading", false},
+                {WerewolfGameDefines.PlayerLoading, false},
             };
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
     }

@@ -21,7 +21,7 @@ public class AbilityTargetButton : MonoBehaviour
     {
         PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable
             {
-                {"VoteTarget", myPlayer.NickName},
+                {WerewolfGameDefines.PlayerVote, myPlayer.NickName},
             });
     }
 }

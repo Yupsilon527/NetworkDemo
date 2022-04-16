@@ -14,7 +14,7 @@ public class VotingPanelController : MonoBehaviour
 
     private void OnEnable()
     {
-        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("VotedPlayer", out object voteName))
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.VotedPlayer, out object voteName))
         {
             VotedPlayerName = (string)voteName;
         }
@@ -38,12 +38,12 @@ public class VotingPanelController : MonoBehaviour
     {
         ButtonYes.interactable = false;
         ButtonNo.interactable = true;
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "VoteTarget", "Y" } });
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.PlayerVote, WerewolfGameDefines.PlayerVoteYes } });
     }
     public void OnPlayerVoteNo()
     {
         ButtonYes.interactable = true;
         ButtonNo.interactable = false;
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "VoteTarget", "N" } });
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.PlayerVote, WerewolfGameDefines.PlayerVoteNo } });
     }
 }

@@ -15,17 +15,17 @@ public class PlayerDeathPanel : MonoBehaviour
 
     public TextMeshProUGUI NameLabel;
     public TextMeshProUGUI CauseLabel;
-    public void AnnouncePlayerDeath(Player p)
+    public void AnnouncePlayerDeath(Player p, WerewolfGameDefines.PlayerAliveState causeOfDeath)
     {
         if (p.IsLocal)
         {
             NameLabel.text = "You have been killed!";
-            CauseLabel.text = "Cause of death";
+            CauseLabel.text = "Cause of death: "+ causeOfDeath;
         }
         else
         {
-            NameLabel.text = p.NickName + " has been!";
-            if (p.CustomProperties.TryGetValue("PlayerClass", out var playerclass))                
+            NameLabel.text = p.NickName + " has been "+ causeOfDeath+"!";
+            if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerClass, out var playerclass))                
                 CauseLabel.text = "Their role was "+ (string)playerclass;
         }
     }

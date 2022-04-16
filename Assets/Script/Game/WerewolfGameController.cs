@@ -5,9 +5,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //TODO
-//timers
-//defines and player settings
-//death cause
 //gamemode scriptables
 //player class
 //menu list interface
@@ -68,7 +65,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient)
         {
             pview.RPC("OnGamephaseChange", RpcTarget.AllBufferedViaServer, nPhase);
-            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "GamePhase", (int)CurrentPhase } });
+            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.GamePhase, (int)CurrentPhase } });
         }
     }
     [PunRPC]
@@ -86,7 +83,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             case GamePhase.Loading:
                 break;
             case GamePhase.PreGame:
-                RunPhaseCountdown(3);
+                RunPhaseCountdown(WerewolfGameDefines.PregameTime);
                 break;
             case GamePhase.Day:
                 
@@ -95,7 +92,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
                 {
                     if (NextNightTime <= 0)
                     {
-                        BeginNewDay(300);
+                        BeginNewDay(WerewolfGameDefines.DayTimeDuration);
                     }
                     ResetPlayerVotes();
                 }
@@ -108,7 +105,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             case GamePhase.Night:
                 ResetPlayerVotes();
                 BeginNewDay(-1);
-                RunPhaseCountdown(60);
+                RunPhaseCountdown(WerewolfGameDefines.NightTimeDuration);
                 break;
             case GamePhase.Defense:
                 ResetPlayerVotes();
@@ -160,14 +157,14 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         Debug.Log("[WerewolfGame] Run countdown timer " + time);
         NextGamePhaseTime = time < 0 ? time : (Time.time + time);
         if (PhotonNetwork.IsMasterClient)
-            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "CountDown", NextGamePhaseTime } });
+            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.PhaseCountdown, NextGamePhaseTime } });
     }
     void BeginNewDay(float daytime)
     {
         Debug.Log("[WerewolfGame] Run countdown timer " + daytime);
         NextNightTime = daytime < 0 ? daytime : (Time.time + daytime);
         if (PhotonNetwork.IsMasterClient)
-            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "NextNightTime", NextNightTime } });
+            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.DayCycle, NextNightTime } });
     }
     #endregion
     #region Start The Game
@@ -179,10 +176,10 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             return;
         PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable
         {
-            { "GamePhase", CurrentPhase },
-            { "VotedPlayer", "" },
-            { "CountDown", 0 },
-            { "NextNightTime", 0 }
+            { WerewolfGameDefines.GamePhase, CurrentPhase },
+            { WerewolfGameDefines.VotedPlayer, "" },
+            { WerewolfGameDefines.PhaseCountdown, 0 },
+            { WerewolfGameDefines.DayCycle, 0 }
         });
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
@@ -228,7 +225,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         for (int player = 0; PunPlayers.Count>0;player++)
         {
             Player p = PunPlayers[Mathf.FloorToInt((PunPlayers.Count - 1) * Random.value)];
-            p.SetCustomProperties( new  ExitGames.Client.Photon.Hashtable{ {"PlayerClass", Roles[player] } });
+            p.SetCustomProperties( new  ExitGames.Client.Photon.Hashtable{ {WerewolfGameDefines.PlayerClass, Roles[player] } });
             PunPlayers.Remove(p);
         }
     }
@@ -249,7 +246,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         {
             object playerLoadedLevel;
 
-            if (p.CustomProperties.TryGetValue("FinishedLoading", out playerLoadedLevel))
+            if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerLoading, out playerLoadedLevel))
             {
                 if ((bool)playerLoadedLevel)
                 {
@@ -269,16 +266,16 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     {
         foreach (Player p in PhotonNetwork.PlayerList)
         {
-            p.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "VoteTarget", "" } });
+            p.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.PlayerVote, "" } });
         }
-        PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable {{ "VotedPlayer", "" }});
+        PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable {{ WerewolfGameDefines.VotedPlayer, "" }});
     }
     void HandlePlayerAccusations()
     {
         if (RecountPlayerAccusations(out string votedPlayer))
         {
             Debug.Log(votedPlayer + " was lynched");
-            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "VotedPlayer", votedPlayer } });
+            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.VotedPlayer, votedPlayer } });
             ChangePhase(GamePhase.Voting);
         }
     }
@@ -288,7 +285,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         Dictionary<string, int> votesCount = new Dictionary<string, int>();
         foreach (Player p in GetAllLivingPlayers())
         {
-            if (p.CustomProperties.TryGetValue("VoteTarget", out var playervote))
+            if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerVote, out var playervote))
             {
                 if (playervote as string == null)
                     continue;
@@ -321,7 +318,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     bool RecountPlayerLynchings(out bool VotedKill)
     {
         VotedKill = false;
-        if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("VotedPlayer", out object value))
+        if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.VotedPlayer, out object value))
             return false;
         string votedPlayer = (string)value;
 
@@ -332,14 +329,14 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         {
             if (p.NickName == votedPlayer)
                 continue;
-            if (p.CustomProperties.TryGetValue("VoteTarget", out var playervote))
+            if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerVote, out var playervote))
             {
                 string pVote = (string)playervote;
                 if (pVote == "")
                 {
                     EveryoneVoted = false;
                 }
-                else if (pVote == "Y")
+                else if (pVote == WerewolfGameDefines.PlayerVoteYes)
                 {
                     votes++;
                 }
@@ -351,7 +348,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     void HandlePlayerLynching()
     {
         Debug.Log("[WerewolfGame] Handle player lyncing...");
-        if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("VotedPlayer", out object value))
+        if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.VotedPlayer, out object value))
             return;
 
         string votedPlayer = (string)value;
@@ -361,7 +358,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             if (votedKill)
             {
                 Debug.Log(votedPlayer + " was lynched");
-                KillPlayer(GetPlayerByName(votedPlayer));
+                KillPlayer(GetPlayerByName(votedPlayer), WerewolfGameDefines.PlayerAliveState.lynched);
                     ResetPlayerVotes();
                     ChangePhase(GamePhase.Night);
                 
@@ -376,7 +373,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     void HandleEndOfVoting()
     {
         Debug.Log("[WerewolfGame] Handle player lyncing...");
-        if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("VotedPlayer", out object value))
+        if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.VotedPlayer, out object value))
             return;
 
         string votedPlayer = (string)value;
@@ -385,7 +382,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             if (votedKill)
             {
                 Debug.Log(votedPlayer + " was lynched");
-                KillPlayer(GetPlayerByName(votedPlayer));
+                KillPlayer(GetPlayerByName(votedPlayer), WerewolfGameDefines.PlayerAliveState.lynched);
             }
             else if (everyoneVoted)
             {
@@ -401,7 +398,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         Player[] antags = GetLivingAntags();
         foreach (Player p in antags)
         {
-            if (p.CustomProperties.TryGetValue("VoteTarget", out var playervote))
+            if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerVote, out var playervote))
             {
                 string sVote = (string)playervote;
                 if (sVote == "" || IsPlayerAntagonist(GetPlayerByName(sVote)))
@@ -433,7 +430,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         if (RecountAntagCoordinatedAttack(out string votedPlayer) && GetPlayerByName(votedPlayer)!=null && NextGamePhaseTime - Time.time > 5)
         {
             Debug.Log("Antags have decided to kill " + votedPlayer);
-            RunPhaseCountdown(5);
+            RunPhaseCountdown(WerewolfGameDefines.PhaseTimeShort);
         }
     }
     void HandleAntagCoordinatedAttack()
@@ -444,7 +441,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             Player murderTarget = GetPlayerByName(votedPlayer);
             if (murderTarget != null && !IsPlayerAntagonist(murderTarget) && IsPlayerAlive(murderTarget))
             {
-                KillPlayer(murderTarget);
+                KillPlayer(murderTarget, WerewolfGameDefines.PlayerAliveState.mauled);
                 ChangePhase(GamePhase.Day);
             }
         }
@@ -456,10 +453,10 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         if (!PhotonNetwork.IsMasterClient)
             return;
 
-        if (changedProps.ContainsKey("FinishedLoading"))
+        if (changedProps.ContainsKey(WerewolfGameDefines.PlayerLoading))
             CheckGameStarted();
 
-        if (changedProps.ContainsKey("VoteTarget"))
+        if (changedProps.ContainsKey(WerewolfGameDefines.PlayerVote))
         {
             if (CurrentPhase == GamePhase.Day)
                 HandlePlayerAccusations();
@@ -473,7 +470,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     #region Variable Sync
     void UpdateVarsFromServer()
     {
-        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("GamePhase", out object newGamePhase))
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.GamePhase, out object newGamePhase))
         {
             try
             {
@@ -484,7 +481,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
                 CurrentPhase = GamePhase.Loading;
             }
         }
-        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("CountDown", out object CountDown))
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.PhaseCountdown, out object CountDown))
         {
             try
             {
@@ -495,7 +492,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
                 NextGamePhaseTime = 0;
             }
         }
-        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("NextNightTime", out object DayTime))
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.DayCycle, out object DayTime))
         {
             try
             {
@@ -545,7 +542,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     {
         ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
             {
-                {"FinishedLoading", true},
+                {WerewolfGameDefines.PlayerLoading, true},
             };
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
     }
@@ -555,10 +552,10 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             return;
         ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
             {
-                {"CustomPortrait", "Player"},
-                {"PlayerClass", "Spectator"},
-                {"VoteTarget", ""},
-                {"WasKilled", false},
+                {WerewolfGameDefines.PlayerPortrait, "Player"},
+                {WerewolfGameDefines.PlayerClass, "Spectator"},
+                {WerewolfGameDefines.PlayerVote, ""},
+                {WerewolfGameDefines.PlayerState, (int)WerewolfGameDefines.PlayerAliveState.alive},
             };
         foreach (Player p in PhotonNetwork.PlayerList)
             p.SetCustomProperties(props);
@@ -566,9 +563,9 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     public bool IsPlayerAlive(Player p)
     {
 
-        if (p.CustomProperties.TryGetValue("WasKilled", out var isDead))
+        if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerState, out var isDead))
         {
-            return !(bool)isDead;
+            return (int)isDead == 0;
 
         }
         return false;
@@ -590,9 +587,9 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         List<Player> antags = new List<Player>();
         foreach (Player p in PhotonNetwork.PlayerList)
         {
-            if (p.CustomProperties.TryGetValue("PlayerClass", out var playerclass) && p.CustomProperties.TryGetValue("WasKilled", out var isDead))
+            if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerClass, out var playerclass) && p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerState, out var aliveState))
             {
-                if (!(bool)isDead && IsPlayerAntagonist((string)playerclass))
+                if ((int)aliveState==0 && IsPlayerAntagonist((string)playerclass))
                 {
                     antags.Add(p);
                 }
@@ -605,9 +602,9 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         List<Player> villagers = new List<Player>();
         foreach (Player p in PhotonNetwork.PlayerList)
         {
-            if (p.CustomProperties.TryGetValue("PlayerClass", out var playerclass) && p.CustomProperties.TryGetValue("WasKilled", out var isDead))
+            if (p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerClass, out var playerclass) && p.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerState, out var aliveState))
             {
-                if (!(bool)isDead && !IsPlayerAntagonist((string)playerclass))
+                if ((int)aliveState == 0 && !IsPlayerAntagonist((string)playerclass))
                     {
                         villagers.Add(p);
                     }
@@ -619,14 +616,14 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     {
         if (targetplayer == null)
             return false;
-        if (targetplayer.CustomProperties.TryGetValue("PlayerClass", out var playerclass))
+        if (targetplayer.CustomProperties.TryGetValue(WerewolfGameDefines.PlayerClass, out var playerclass))
             return (string)playerclass == "Werewolf";
         return false;
     }
-    void KillPlayer(Player p)
+    void KillPlayer(Player p, WerewolfGameDefines.PlayerAliveState deathCause)
     {
         Debug.Log(p.NickName + " was killed on server!");
-        p.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "WasKilled", true } });
+        p.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.PlayerState, (int)deathCause } });
     }
     public bool IsPlayerAntagonist(string className)
     {
