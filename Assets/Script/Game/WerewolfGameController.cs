@@ -26,7 +26,8 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     }
     private void Update()
     {
-        HandlePhase();
+        if (PhotonNetwork.IsMasterClient)
+            HandlePhase();
     }
     #endregion
     #region GameRestart
@@ -92,7 +93,10 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
                 {
                     if (NextNightTime <= 0)
                     {
-                        BeginNewDay(WerewolfGameDefines.DayTimeDuration);
+                        if (IsFirstDay())
+                            BeginNewDay(WerewolfGameDefines.FirstDayDuration);
+                        else 
+                            BeginNewDay(WerewolfGameDefines.DayTimeDuration);
                     }
                     ResetPlayerVotes();
                 }
@@ -122,7 +126,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
     void HandlePhase()
     {
         //Debug.Log("[WerewolfGame] Coutdown time " + CurrentPhase +" "+(NextGamePhaseTime - Time.time));
-        if (NextGamePhaseTime > 0 && NextGamePhaseTime < Time.time)
+        if ((NextGamePhaseTime > 0 && NextGamePhaseTime < Time.time) || (CurrentPhase ==  GamePhase.Day && NextNightTime < Time.time))
             GoToNextPhase();
     }
     void GoToNextPhase()
@@ -130,6 +134,9 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
         Debug.Log("[WerewolfGame] Go to next phase from "+ CurrentPhase);
         switch (CurrentPhase)
         {
+            case GamePhase.Day:
+                ChangePhase(GamePhase.Night);
+                break;
             case GamePhase.Night:
                 HandleAntagCoordinatedAttack();
                 ChangePhase(GamePhase.Day);
@@ -180,7 +187,8 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             { WerewolfGameDefines.GamePhase, CurrentPhase },
             { WerewolfGameDefines.VotedPlayer, "" },
             { WerewolfGameDefines.PhaseCountdown, 0 },
-            { WerewolfGameDefines.DayCycle, 0 }
+            { WerewolfGameDefines.DayCycle, 0 },
+            { WerewolfGameDefines.FirstDay, true }
         });
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
@@ -263,6 +271,14 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
 
     #endregion
     #region Voting Phase
+    public bool IsFirstDay()
+    {
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(WerewolfGameDefines.FirstDay, out var FirstDay))
+        {
+            return (bool)FirstDay;
+        }
+        return false;
+    }
     void ResetPlayerVotes()
     {
         foreach (Player p in PhotonNetwork.PlayerList)
@@ -432,6 +448,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
             if (murderTarget != null && !IsPlayerAntagonist(murderTarget) && IsPlayerAlive(murderTarget))
             {
                 KillPlayer(murderTarget, WerewolfGameDefines.PlayerAliveState.mauled);
+                PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { WerewolfGameDefines.FirstDay, false } });
                 ChangePhase(GamePhase.Day);
             }
         }
@@ -448,7 +465,7 @@ public class WerewolfGameController : MonoBehaviourPunCallbacks
 
         if (changedProps.ContainsKey(WerewolfGameDefines.PlayerVote))
         {
-            if (CurrentPhase == GamePhase.Day)
+            if (CurrentPhase == GamePhase.Day && !IsFirstDay())
                 HandlePlayerAccusations();
             else if (CurrentPhase == GamePhase.Voting)
                 HandlePlayerLynching();

@@ -26,20 +26,24 @@ public class GameInterfaceController : MonoBehaviourPunCallbacks
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
     {
         if (changedProps.ContainsKey(WerewolfGameDefines.PlayerState) && changedProps.TryGetValue(WerewolfGameDefines.PlayerState, out var playerDead))
-            {
+        {
 
             if (targetPlayer.UserId == PhotonNetwork.LocalPlayer.UserId)
-                HasPlayerDied = (int)playerDead > 0;
-                if (HasPlayerDied)
             {
-                Debug.Log(targetPlayer.NickName + " was killed UI!");
-                DeadPanel.AnnouncePlayerDeath(targetPlayer, (WerewolfGameDefines.PlayerAliveState)playerDead);
+                HasPlayerDied = (int)playerDead > 0;
+            }
+
+            Debug.Log(targetPlayer.NickName + " was killed UI!");
+            WerewolfGameDefines.PlayerAliveState playerState = (WerewolfGameDefines.PlayerAliveState)playerDead;
+            if (playerState > WerewolfGameDefines.PlayerAliveState.alive)
+            {
+                DeadPanel.AnnouncePlayerDeath(targetPlayer, playerState);
                 if (TooltipCoroutine != null)
                     StopCoroutine(TooltipCoroutine);
                 TooltipCoroutine = StartCoroutine(ShowPlayerDeath());
             }
-            }
-        
+        }
+
 
         if (targetPlayer.UserId != PhotonNetwork.LocalPlayer.UserId)
             return;

@@ -8,6 +8,7 @@ public static class WerewolfGameDefines
     public static string VotedPlayer = "VotedPlayer";
     public static string DayCycle = "DayCycle";
     public static string PhaseCountdown = "PhaseCountdown";
+    public static string FirstDay = "FirstDay";
 
     public static string PlayerClass = "PlayerClass";
     public static string PlayerVote = "VoteTarget";
@@ -22,6 +23,7 @@ public static class WerewolfGameDefines
 
     public static float PregameTime = 3;
     public static float PhaseTimeShort = 5;
+    public static float FirstDayDuration = 20;
     public static float DayTimeDuration = 300;
     public static float NightTimeDuration = 60;
 

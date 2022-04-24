@@ -27,11 +27,12 @@ public class AccusationListController : MonoBehaviour
     void LoadPlayerList()
     {
         ClearPlayerList();
-        foreach (Player p in WerewolfGameController.main.GetAllLivingPlayers())
-        {
-            if (!p.IsLocal)
-                RegisterNewPlayer(p);
-        }
+            foreach (Player p in WerewolfGameController.main.GetAllLivingPlayers())
+            {
+                if (!p.IsLocal)
+                    RegisterNewPlayer(p);
+            }
+        
     }
     void RegisterNewPlayer(Player player)
     {
